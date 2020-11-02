@@ -1,7 +1,7 @@
 <img src="docs/screenshots/banner.png" alt="Calavera" width="800"/>
 
 # Calavera: A fully featured web-based development environment
-Calavera is fully featured web-based development environment with serveral available services! It has everything a team needs to develop applications. From a project management tool like **OpenProject** to the web-hosted editor **Visual Studio Code** is everything needed included. Even deploying applications in the Kubernetes Cluster is possible with a user namespace which is available without further configuration or authorization in the editor to access.
+Calavera is fully featured web-based development environment deloyed on **Kubernetes** with serveral available services! It has everything a team needs to develop applications. From a project management tool like **OpenProject** to the web-hosted editor **Visual Studio Code** is everything needed included. Even deploying applications in the Kubernetes Cluster is possible with a user namespace which is available without further configuration or authorization in the editor to access.
 
 **Included services:**
 - OpenLDAP
@@ -63,7 +63,7 @@ Synchronization of LDAP groups/roles are not available in GitLab CE, therefore i
 
 
 ## Maintainer
-This project was developed within a bachelor thesis at the Hochschule für Telekommunikation in Leipzig (HfTL).
+This project was developed as a part of a bachelor thesis at the Hochschule für Telekommunikation in Leipzig (HfTL).
 
 Maintainer and creator is:  
 Simon Wakenhut (<simon@simonwakenhut.me>)
