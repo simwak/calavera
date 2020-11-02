@@ -14,6 +14,12 @@ Calavera is fully featured web-based development environment deloyed on **Kubern
 - OpenProject
 - Visual Studio Code
 
+Related repositories:
+- [Calavera Helm Chart](https://github.com/simwak/charts/tree/main/charts/calavera)
+- [Calavera Dashboard](https://github.com/simwak/calavera-dashboard)
+- [Calavera API](https://github.com/simwak/calavera-api)
+- [VS Code Server on Kubernetes](https://github.com/simwak/k8s-code-server)
+
 ## Prerequisites
 - Kubernetes 1.15+
 - Helm 3
