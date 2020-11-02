@@ -47,8 +47,8 @@ Create a `values.tfvars` or use one from the `examples/` directory and adjust it
 - GitLab: Disable self.registration  
   **Description**: Registration should be disabled for GitLab as only LDAP is used. This is to prevent security incidents like [this](https://www.teiss.co.uk/daimler-ag-mercedes-source-code-leak/). The chart does not support this option currently. [Issue 2837](https://gitlab.com/gitlab-org/omnibus-gitlab/-/issues/2837)  
   **Workaround**: Login as a GitLab Administrator and disable self registration in the Admin Area.
-- Gitea Login only works with UID or OAuth
-  **Description**: You cannot use your E-Mail address right now for the gitea login
+- Gitea Login only works with UID or OAuth  
+  **Description**: You cannot use your E-Mail address right now for the gitea login  
   **Workaround**: Use your UID or OAuth
 
 ## FAQ
