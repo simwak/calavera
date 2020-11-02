@@ -1,7 +1,5 @@
 <img src="docs/screenshots/banner.png" alt="Calavera" width="800"/>
 
-<br><br>
-
 # Calavera: A fully featured web-based development environment
 Calavera is fully featured web-based development environment with serveral available services! It has everything a team needs to develop applications. From a project management tool like **OpenProject** to the web-hosted editor **Visual Studio Code** is everything needed included. Even deploying applications in the Kubernetes Cluster is possible with a user namespace which is available without further configuration or authorization in the editor to access.
 
