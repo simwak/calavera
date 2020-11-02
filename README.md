@@ -60,3 +60,10 @@ Most of the services are ready in about 3-4 minutes. OpenProject needs about 7-8
 
 ### How can I login as a GitLab administrator/root user?
 Synchronization of LDAP groups/roles are not available in GitLab CE, therefore it is not possible to grant the default LDAP administrator GitLab administrator rights. To login as a administrator use the user `root` with the password from `kubectl get secret {{ release_name }}-gitlab-gitlab-initial-root-password --template={{.data.password}} | base64 -d` (Replace `{{ release_name }}` with the actual value). You can login without SSO at `https://{{ domains.gitlab }}/users/sign_in?auto_sign_in=false` (Replace `{{ release_name }}` with the actual value). You also grant the administrator rights to your user now in Admin Area → Users → Your user → Edit.
+
+
+## Maintainer
+This project was developed within a bachelor thesis at the Hochschule für Telekommunikation in Leipzig (HfTL).
+
+Maintainer and creator is:  
+Simon Wakenhut (<simon@simonwakenhut.me>)
