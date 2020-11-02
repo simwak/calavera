@@ -1,0 +1,129 @@
+global:
+  edition: ce
+  hosts:
+    domain: ${ domains.base }
+    https: true
+    gitlab:
+      name: ${ domains.gitlab }
+      https: true
+
+  ingress:
+    configureCertmanager: false
+    enabled: false
+
+  grafana:
+    enabled: false
+
+  appConfig:
+    enableUsagePing: true
+    enableSeatLink: true
+    enableImpersonation: false
+    defaultCanCreateGroup: true
+    usernameChangingEnabled: false
+    defaultProjectsFeatures:
+      issues: true
+      mergeRequests: true
+      wiki: true
+      snippets: true
+      builds: true
+
+    ldap:
+      preventSignin: false
+      servers:
+        main:
+          label: 'LDAP'
+          host: '${ ldap.host }'
+          port: ${ ldap.port }
+          uid: '${ ldap.username_attribute }'
+          bind_dn: '${ ldap.bind_dn }'
+          allow_username_or_email_login: true
+          block_auto_created_users: false
+          user_filter: ''
+          base: '${ ldap.users_dn }'
+          password:
+            secret: ${ ldap.bind_credential_secret.name }
+            key: ${ ldap.bind_credential_secret.key }
+          encryption: '${ ldap.encryption }'
+          attributes:
+            username: ['${ ldap.username_attribute }']
+            email: ['${ ldap.email_attribute }']
+            name: '${ ldap.email_attribute }'
+            first_name: '${ ldap.firstname_attribute }'
+            last_name: '${ ldap.lastname_attribute }'
+
+    omniauth:
+      enabled: true
+      autoSignInWithProvider: 'saml'
+      syncProfileAttributes: ['email']
+      allowSingleSignOn: ['saml']
+      blockAutoCreatedUsers: false
+      autoLinkLdapUser: true
+      autoLinkSamlUser: true
+      providers:
+        - secret: ${ saml_secret }
+
+  smtp:
+    enabled: true
+    address: ${ smtp.host }
+    port: ${ smtp.port }
+    user_name: "${ smtp.user }"
+    password:
+      secret: "${ release_name }-base-smtp-password"
+      key: password
+    authentication: "${ smtp.encryption }"
+    starttls_auto: ${ smtp.starttls }
+    openssl_verify_mode: "peer"
+
+  email:
+    from: '${ smtp.from }'
+    display_name: ${ release_name } GitLab
+    reply_to: '${ smtp.from }'
+    smime:
+      enabled: false
+
+  time_zone: ${ timezone }
+
+  %{ if enable_custom_ca }
+  certificates:
+    customCAs:
+      - secret: ${ ca_secret }
+  %{ endif }
+
+certmanager:
+  createCustomResource: false
+  install: false
+
+nginx-ingress:
+  enabled: false
+
+prometheus:
+  install: false
+
+gitlab-runner:
+  install: true
+  %{ if enable_custom_ca }
+  certsSecretName: ${ ca_secret }
+   %{ endif }
+
+grafana:
+  sidecar:
+    dashboards:
+      enabled: false
+    datasources:
+      enabled: false
+
+postgresql:
+  persistence:
+    enabled: ${ persistence }
+    size: ${ persistence_size_postgresql }
+
+gitlab:
+  gitaly:
+    persistence:
+      enabled: ${ persistence }
+      size: ${ persistence_size_gitaly }
+
+minio:
+  persistence:
+    enabled: ${ persistence }
+    size: ${ persistence_size_minio }

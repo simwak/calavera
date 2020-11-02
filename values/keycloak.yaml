@@ -1,0 +1,29 @@
+extraEnv: |
+  - name: KEYCLOAK_USER
+    value: ${ admin.user }
+  - name: KEYCLOAK_PASSWORD
+    value: ${ admin.password }
+  - name: PROXY_ADDRESS_FORWARDING
+    value: "true"
+  - name: KEYCLOAK_IMPORT
+    value: /realm/realm.json
+  - name: KEYCLOAK_STATISTICS
+    value: all
+
+extraVolumes: |
+  - name: realm-config-map
+    configMap:
+      name: ${ realm_configmap }
+
+extraVolumeMounts: |
+  - name: realm-config-map
+    mountPath: "/realm/"
+    readOnly: true
+
+postgresql:
+  persistence:
+    enabled: ${ persistence }
+    size: ${ persistence_postgresql_size }
+  postgresqlUsername: ${ postgresql.username }
+  postgresqlPassword: ${ postgresql.password }
+  postgresqlDatabase: ${ postgresql.database }

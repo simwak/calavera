@@ -1,0 +1,149 @@
+master:
+  securityRealm: |-
+    <securityRealm class="hudson.security.LegacySecurityRealm"/>
+  authorizationStrategy: |-
+     <authorizationStrategy class="hudson.security.FullControlOnceLoggedInAuthorizationStrategy">
+       <denyAnonymousReadAccess>true</denyAnonymousReadAccess>
+     </authorizationStrategy>
+  hostNetworking: false
+
+  adminUser: "${ admin_user.user }"
+  adminPassword: "${ admin_user.password }"
+
+  resources:
+    requests:
+      cpu: "50m"
+      memory: "256Mi"
+    limits:
+      cpu: "2000m"
+      memory: "4096Mi"
+  jenkinsUrl: "https://{ domains.jenkins }"
+  runAsUser: 1000
+  fsGroup: 1000
+  servicePort: 8080
+  targetPort: 8080
+  healthProbes: true
+  healthProbesLivenessTimeout: 5
+  healthProbesReadinessTimeout: 5
+  healthProbeLivenessPeriodSeconds: 10
+  healthProbeReadinessPeriodSeconds: 10
+  healthProbeLivenessFailureThreshold: 5
+  healthProbeReadinessFailureThreshold: 3
+  healthProbeLivenessInitialDelay: 90
+  healthProbeReadinessInitialDelay: 60
+  slaveListenerPort: 50000
+  slaveHostPort:
+  disabledAgentProtocols:
+    - JNLP-connect
+    - JNLP2-connect
+  csrf:
+    defaultCrumbIssuer:
+      enabled: true
+      proxyCompatability: true
+  cli: false
+  slaveListenerServiceType: "ClusterIP"
+  slaveListenerServiceAnnotations: {}
+  slaveDefaultsProviderTemplate: ""
+  slaveConnectTimeout: 5
+  slaveReadTimeout: 15
+  slaveKubernetesNamespace:
+  slaveJenkinsUrl: "https://{ domains.jenkins }"
+  slaveJenkinsTunnel:
+
+  installPlugins:
+    - kubernetes:1.25.7
+    - workflow-job:2.39
+    - workflow-aggregator:2.6
+    - credentials-binding:1.23
+    - git:4.2.2
+    - configuration-as-code:1.41
+
+  additionalPlugins:
+    - "ldap:1.26"
+    ${ additional_plugins }
+
+  JCasC:
+    enabled: true
+    defaultConfig: true
+    securityRealm: |-
+      ldap:
+        configurations:
+          - server: ${ ldap.host }
+            rootDN: ${ ldap.dc }
+            managerDN: ${ ldap.bind_dn }
+            managerPasswordSecret: ${ ldap.bind_credential }
+            userSearch: "(&(objectClass=inetOrgPerson)(mail={0}))"
+            groupSearchFilter: "(&(cn={0})(objectclass=group))"
+            groupMembershipStrategy:
+              fromGroupSearch:
+                filter: "(&(objectClass=group)(|(cn=GROUP_1)(cn=GROUP_2)))"
+        cache:
+          size: 100
+          ttl: 10
+        userIdStrategy: CaseInsensitive
+        groupIdStrategy: CaseSensitive
+    authorizationStrategy: |-
+      loggedInUsersCanDoAnything:
+        allowAnonymousRead: false
+
+  %{ if enable_custom_ca }
+  customInitContainers:
+    - name: add-ca-certs
+      image: "jenkins/jenkins:lts"
+      imagePullPolicy: Always
+      command: 
+      - "sh"
+      - "-c"
+      - >
+        cat /ca/* > /tmp/custom-ca-certs.crt
+        && cat /etc/ssl/certs/ca-certificates.crt /ca/* > /cacerts-share/ca-certificates.crt
+        && cp $JAVA_HOME/jre/lib/security/cacerts /cacerts-share/cacerts 
+        && chmod 644 /cacerts-share/cacerts
+        && $JAVA_HOME/bin/keytool -import -trustcacerts -alias custom-ca-certs -keystore /cacerts-share/cacerts -file /tmp/custom-ca-certs.crt -noprompt -storepass changeit
+      volumeMounts:
+        - name: cacerts-share
+          mountPath: /cacerts-share
+        - name: ca
+          mountPath: /ca
+  %{ endif }
+
+  ingress:
+    enabled: false
+
+  route:
+    enabled: false
+
+  prometheus:
+    enabled: false
+
+persistence:
+  enabled: ${ persistence }
+  size: ${ persistence_size }
+  %{ if enable_custom_ca }
+  volumes:
+    - name: cacerts-share
+      emptyDir: {}
+    - name: ca
+      secret:
+        secretName: ${ ca_secret }
+  mounts:
+    - mountPath: /etc/ssl/certs/ca-certificates.crt
+      name: cacerts-share
+      subPath: ca-certificates.crt
+    - mountPath: /usr/local/openjdk-8/jre/lib/security/cacerts
+      name: cacerts-share
+      subPath: cacerts
+  %{ endif }
+
+rbac:
+  create: true
+  readSecrets: false
+
+serviceAccount:
+  create: true
+
+serviceAccountAgent:
+  create: false
+
+backup:
+  enabled: false

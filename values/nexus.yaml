@@ -1,0 +1,135 @@
+nexus:
+  imageName: quay.io/travelaudience/docker-nexus
+  imageTag: 3.25.1
+  imagePullPolicy: IfNotPresent
+  # Uncomment this to scheduler pods on priority
+  # priorityClassName: "high-priority"
+  env:
+    - name: install4jAddVmParams
+      value: "-Xms1200M -Xmx1200M -XX:MaxDirectMemorySize=2G -XX:+UnlockExperimentalVMOptions -XX:+UseCGroupMemoryLimitForHeap"
+    - name: NEXUS_SECURITY_RANDOMPASSWORD
+      value: "false"
+      
+  # nodeSelector:
+  #   cloud.google.com/gke-nodepool: default-pool
+  resources: {}
+    # requests:
+      ## Based on https://support.sonatype.com/hc/en-us/articles/115006448847#mem
+      ## and https://twitter.com/analytically/status/894592422382063616:
+      ##   Xms == Xmx
+      ##   Xmx <= 4G
+      ##   MaxDirectMemory >= 2G
+      ##   Xmx + MaxDirectMemory <= RAM * 2/3 (hence the request for 4800Mi)
+      ##   MaxRAMFraction=1 is not being set as it would allow the heap
+      ##     to use all the available memory.
+      # cpu: 250m
+      # memory: 4800Mi
+  # The ports should only be changed if the nexus image uses a different port
+  dockerPort: 5003
+  nexusPort: 8081
+  service:
+    type: ClusterIP
+  securityContextEnabled: true
+  securityContext:
+    fsGroup: 200
+  podAnnotations: {}
+  livenessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    failureThreshold: 6
+    # timeoutSeconds: 10
+    path: /
+  readinessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 30
+    failureThreshold: 6
+    # timeoutSeconds: 10
+    path: /
+  # hostAliases allows the modification of the hosts file inside a container
+  hostAliases: []
+  # - ip: "192.168.1.10"
+  #   hostnames:
+  #   - "example.com"
+  #   - "www.example.com"
+  context:
+
+nexusProxy:
+  enabled: true
+  # svcName: proxy-svc
+  imageName: quay.io/travelaudience/docker-nexus-proxy
+  imageTag: 2.6.0
+  imagePullPolicy: IfNotPresent
+  port: 8080
+  targetPort: 8080
+  # labels: {}
+  env:
+    nexusDockerHost: ${ domains.nexus }
+    nexusHttpHost: ${ domains.nexus }
+    enforceHttps: false
+    cloudIamAuthEnabled: false
+## If cloudIamAuthEnabled is set to true uncomment the variables below and remove this line
+  #   clientId: ""
+  #   clientSecret: ""
+  #   organizationId: ""
+  #   redirectUrl: ""
+  #   requiredMembershipVerification: "true"
+  # secrets:
+  #   keystore: ""
+  #   password: ""
+  resources: {}
+    # requests:
+      # cpu: 100m
+      # memory: 256Mi
+    # limits:
+      # cpu: 200m
+      # memory: 512Mi
+
+persistence:
+  enabled: ${ persistence }
+  accessMode: ReadWriteOnce
+  storageSize: ${ persistence_size }
+
+config:
+  enabled: false
+  mountPath: /sonatype-nexus-conf
+  data:
+
+deployment:
+  additionalVolumes:
+    - name: properties
+      emptyDir: {}
+  initContainers:
+  - name: properties
+    image: busybox
+    imagePullPolicy: IfNotPresent
+    command: 
+    - "sh"
+    - "-c"
+    - >
+      echo "nexus.scripts.allowCreation=true" > /nexus-data/etc/nexus.properties
+    volumeMounts:
+      - mountPath: /nexus-data/etc
+        name: properties
+  additionalVolumeMounts:
+    - mountPath: /nexus-data/etc/nexus.properties
+      name: properties
+      subPath: nexus.properties
+
+# # To use an additional secret, set enable to true and add data
+secret:
+  enabled: false
+  mountPath: /etc/secret-volume
+  readOnly: true
+  data:
+
+additionalConfigMaps: []
+#  - name: maven-central
+#    labels:
+#      nexus-type: repository
+#    data:
+#      recipe: 'MavenProxy'
+#      remoteUrl: 'https://repo.maven.apache.org/maven2/'
+#      blobStoreName: 'default'
+#      strictContentTypeValidation: 'true'
+#      versionPolicy: 'RELEASE'
+#      layoutPolicy: 'STRICT'

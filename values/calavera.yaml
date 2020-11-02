@@ -1,0 +1,239 @@
+customCA:
+  enabled: ${ enable_custom_ca }
+  %{ if enable_custom_ca }
+  ca: |+2
+    ${ indent(4, custom_ca) }
+  %{ endif }
+
+smtp:
+  password: ${ smtp.password }
+
+api:
+  image:
+    repository: simwak/calavera-api
+    pullPolicy: Always
+    tag: latest
+  domain: ${ domains.api }
+  certResolver: ${ cert_resolver }
+  entrypoints:
+    https: ${ entrypoints.https }
+    http: ${ entrypoints.https }
+  config:
+    enabled:
+      gitea: ${ enabled.gitea }
+      gitlab: ${ enabled.gitlab }
+      openproject: ${ enabled.openproject }
+      jenkins: ${ enabled.jenkins }
+      nexus: ${ enabled.nexus }
+      mattermost: ${ enabled.mattermost }
+    domains:
+      base: ${ domains.base }
+      api: ${ domains.api }
+      dashboard: ${ domains.dashboard }
+      gitlab: ${ domains.gitlab }
+      gitea: ${ domains.gitea }
+      jenkins: ${ domains.jenkins }
+      mattermost: ${ domains.mattermost }
+      nexus: ${ domains.nexus }
+      openproject: ${ domains.openproject }
+      keycloak: ${ domains.auth }
+      editor: ${ domains.editor }
+    namespace: ${ namespace }
+    userNamespace: ${ user_namespace }
+    displayName: ${ display_name }
+    releaseName: ${ release_name }
+    entrypoint: ${ entrypoints.https }
+    certResolver: ${ cert_resolver }
+  configInternal:
+    ldapUrl: ${ ldap.connection_url }
+    bindDn: ${ ldap.bind_dn }
+    bindCredentials: ${ ldap.bind_credential }
+    usersDn: ${ ldap.users_dn }
+    groupsDn: ${ ldap.groups_dn }
+  configAuth:
+    url: https://${ domains.auth }/auth
+    realm: calavera
+    clientId: ${ dashboard_client_id }
+    onLoad: login-required
+    checkLoginIframe: false
+    flow: implicit
+
+dashboard:
+  image:
+    repository: simwak/calavera-dashboard
+    pullPolicy: Always
+    tag: latest
+  domain: ${ domains.dashboard }
+  apiDomain: ${ domains.api }
+  clientId: ${ dashboard_client_id }
+  secret: ${ dashboard_secret }
+  redirectUri: https://${ domains.dashboard }/*
+  certResolver: ${ cert_resolver }
+  entrypoints:
+    https: ${ entrypoints.https }
+    http: ${ entrypoints.https }
+
+keycloak:
+  domain: ${ domains.auth }
+  displayName: ${ display_name }
+  service: ${ keycloak_service }
+  certResolver: ${ cert_resolver }
+  rsa:
+    certificate: ${ keycloak_rsa.certificate }
+    privateKey: ${ keycloak_rsa.privateKey }
+  entrypoints:
+    https: ${ entrypoints.https }
+    http: ${ entrypoints.https }
+  smtp:
+    host: ${ smtp.host }
+    port:  ${ smtp.port }
+    auth:  ${ smtp.auth }
+    user:  ${ smtp.user }
+    password:  ${ smtp.password }
+    replyToDisplayName:  ${ smtp.reply_to_display_name }
+    starttls: ${ smtp.starttls }
+    from:  ${ smtp.from }
+    fromDisplayName:  ${ smtp.from_display_name }
+    ssl: ${ smtp.ssl }
+  clients:
+    gitea:
+      oauth:
+        enabled: true
+        id: ${ gitea_oauth.id }
+        secret: ${ gitea_oauth.secret }
+    gitlab:
+      saml:
+        enabled: true
+        id: ${ gitlab_saml.id }
+        secret: ${ gitlab_saml.secret }
+        host: ${ domains.gitlab }
+        fingerprint: ${ gitlab_saml.fingerprint }
+  ldap:
+    bindDn: ${ ldap.bind_dn }
+    usersDn: ${ ldap.users_dn }
+    bindCredential: ${ ldap.bind_credential }
+    connectionUrl: ${ ldap.connection_url }
+
+openldap:
+  host: ${ ldap.host }
+  adminUser: ${ ldap.bind_dn }
+  configUser: cn=admin,cn=config
+  adminUserPassword: ${ ldap.bind_credential }
+  configUserPassword: ${ ldap.config_bind_credential }
+  schemaLdif: |-
+    dn: cn=calavera,cn=schema,cn=config
+    objectClass: olcSchemaConfig
+    cn: calavera
+    olcAttributeTypes: {0}( 59.6.1.10.57.1.1 NAME 'openprojectAdmin' SYNTAX 1.3.6.1.4.1.1466.115.121.1.15 )
+    olcObjectClasses: {0}( 59.6.1.10.57.0.1 NAME 'giteaAdmin' SUP top AUXILIARY )
+    olcObjectClasses: {1}( 59.6.1.10.57.0.2 NAME 'openprojectAdmin' SUP top AUXILIARY MUST ( openprojectAdmin ))
+
+  defaultLdif: |-
+    dn: ou=users,${ ldap.dc }
+    objectClass: organizationalUnit
+    ou: users
+
+    dn: ou=groups,${ ldap.dc }
+    objectClass: organizationalUnit
+    ou: groups
+
+    dn: uid=${ admin_user.uid },ou=users,${ ldap.dc }
+    objectClass: inetOrgPerson
+    objectClass: organizationalPerson
+    objectClass: openprojectAdmin
+    objectClass: giteaAdmin
+    cn: ${ admin_user.name }
+    sn: ${ admin_user.surname }
+    mail: ${ admin_user.mail }
+    uid: ${ admin_user.uid }
+    userPassword:: ${ admin_user_password_base64 }
+    openprojectAdmin: true
+    employeeNumber: 1
+
+    dn: cn=nx-admin,ou=groups,${ ldap.dc }
+    objectClass: groupOfUniqueNames
+    cn: nx-admin
+    uniqueMember: uid=${ admin_user.uid },ou=users,${ ldap.dc }
+
+    dn: cn=administrator,ou=groups,${ ldap.dc }
+    objectClass: groupOfUniqueNames
+    cn: administrator
+    uniqueMember: uid=${ admin_user.uid },ou=users,${ ldap.dc }
+
+gitea:
+  enabled: ${ enabled.gitea }
+  domain: ${ domains.gitea }
+  service: ${ gitea_service }
+  certResolver: ${ cert_resolver }
+  entrypoints:
+    https: ${ entrypoints.https }
+    http: ${ entrypoints.http }
+
+gitlab:
+  enabled: ${ enabled.gitlab }
+  domain: ${ domains.gitlab }
+  service: ${ gitlab_service }
+  certResolver: ${ cert_resolver }
+  entrypoints:
+    https: ${ entrypoints.https }
+    http: ${ entrypoints.http }
+  ldap:
+    bindCredential: ${ ldap.bind_credential }
+
+openproject:
+  enabled: ${ enabled.openproject }
+  domain: ${ domains.openproject }
+  service: ${ openproject_service }
+  certResolver: ${ cert_resolver }
+  entrypoints:
+    https: ${ entrypoints.https }
+    http: ${ entrypoints.http }
+
+jenkins:
+  enabled: ${ enabled.jenkins }
+  domain: ${ domains.jenkins }
+  service: ${ jenkins_service }
+  certResolver: ${ cert_resolver }
+  entrypoints:
+    https: ${ entrypoints.https }
+    http: ${ entrypoints.http }
+
+mattermost:
+  enabled: ${ enabled.mattermost }
+  domain: ${ domains.mattermost }
+  service: ${ mattermost_service }
+  certResolver: ${ cert_resolver }
+  entrypoints:
+    https: ${ entrypoints.https }
+    http: ${ entrypoints.http }
+
+nexus:
+  enabled: ${ enabled.nexus }
+  domain: ${ domains.nexus }
+  service: ${ nexus_service }
+  certResolver: ${ cert_resolver }
+  entrypoints:
+    https: ${ entrypoints.https }
+    http: ${ entrypoints.http }
+  username: admin     # This values are hardcoded defaults, you cannot change them here
+  password: admin123  # This values are hardcoded defaults, you cannot change them here
+  new_password: ${ nexus_admin_password }
+  ca: /var/nexus-ca/custom-ca.pem
+  ldap:
+    name: ${ ldap.host }
+    protocol: ${ ldap.protocol }
+    hostname: ${ ldap.host }
+    port: ${ ldap.port }
+    username: ${ ldap.bind_dn }
+    password: ${ ldap.bind_credential }
+    search_base: ${ ldap.dc }
+    use_trust_store: false
+    user_base_dn: ${ ldap.users_dn_relative }
+    user_ldap_filter:
+    user_object_class: ${ ldap.user_object_class }
+    user_id_attribute: ${ ldap.email_attribute }
+    user_real_name_attribute: ${ ldap.firstname_attribute }
+    user_email_attribute: ${ ldap.email_attribute }
+    user_memberof_attribute: ${ ldap.memberof_attribute }
+    user_subtree: true
+    group_subtree: true

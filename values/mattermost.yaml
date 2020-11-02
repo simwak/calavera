@@ -1,0 +1,119 @@
+mage:
+  repository: mattermost/mattermost-team-edition
+  tag: 5.27.0
+  imagePullPolicy: IfNotPresent
+
+initContainerImage:
+  repository: appropriate/curl
+  tag: latest
+  imagePullPolicy: IfNotPresent
+
+persistence:
+  data:
+    enabled: ${ persistence }
+    size: ${ persistence_data_size }
+    accessMode: ReadWriteOnce
+  # existingClaim: ""
+  plugins:
+    enabled: true
+    size: ${ persistence_plugins_size }
+    accessMode: ReadWriteOnce
+  # existingClaim: ""
+
+mysql:
+  enabled: true
+  mysqlRootPassword: ${ mysql.root_password }
+  mysqlUser: ${ mysql.username }
+  mysqlPassword: ${ mysql.password }
+  mysqlDatabase: ${ mysql.database }
+
+  repository: mysql
+  imageTag: '8.0.18'
+
+  persistence:
+    enabled: ${ persistence }
+    accessMode: ReadWriteOnce
+    size: ${ persistence_mysql_size }
+  # existingClaim: ""
+
+extraEnvVars:
+  - name: MM_CONFIG
+    value: "/mattermost/data/config.json"
+
+extraInitContainers:
+  - name: copy-config
+    image: "alpine:latest"
+    imagePullPolicy: IfNotPresent
+    volumeMounts:
+    - mountPath: /mattermost/config/config.json
+      name: config-json
+      subPath: config.json
+    - mountPath: /mattermost/data
+      name: mattermost-data
+    command: ["/bin/ash", "-c", "if [[ ! -f \"/mattermost/data/config.json\" ]] ;then echo \"copy configJSON\"; cp -f /mattermost/config/config.json /mattermost/data/config.json && chown 2000:2000 /mattermost/data/config.json;else echo \"configJSON exist\"; fi;"]
+%{ if enable_custom_ca }
+  - name: add-ca-certs
+    image: mattermost/mattermost-team-edition:5.27.0
+    imagePullPolicy: Always
+    command: 
+    - "sh"
+    - "-c"
+    - >
+      cat /etc/ssl/certs/ca-certificates.crt /ca/* > /cacerts-share/ca-certificates.crt
+    volumeMounts:
+      - name: cacerts-share
+        mountPath: /cacerts-share
+      - name: ca
+        mountPath: /ca
+
+extraVolumes:
+  - name: cacerts-share
+    emptyDir: {}
+  - name: ca
+    secret:
+      secretName: ${ ca_secret }
+
+extraVolumeMounts:
+  - mountPath: /etc/ssl/certs/ca-certificates.crt
+    name: cacerts-share
+    subPath: ca-certificates.crt
+  - mountPath: /usr/local/openjdk-8/jre/lib/security/cacerts
+    name: cacerts-share
+    subPath: cacerts
+%{ endif }
+
+configJSON:
+  ServiceSettings:
+    SiteURL: "https://${ domains.mattermost }"
+  TeamSettings:
+    SiteName: ${ display_name } Mattermost
+  GitLabSettings:
+    Enable: true
+    Secret: 3e914323–818b-4eq5-a9be-85a1be70b11a
+    Id: mattermost 
+    Scope: ""
+    AuthEndpoint: https://${ domains.auth }/auth/realms/calavera/protocol/openid-connect/auth
+    TokenEndpoint: https://${ domains.auth }/auth/realms/calavera/protocol/openid-connect/token
+    UserApiEndpoint: https://${ domains.auth }/auth/realms/calavera/protocol/openid-connect/userinfo
+  EmailSettings:
+    EnableSignUpWithEmail: false
+    EnableSignInWithEmail: false
+    EnableSignInWithUsername: false
+    SendEmailNotifications: true
+    UseChannelInEmailNotifications: false
+    RequireEmailVerification: false
+    FeedbackName: "${ smtp.from_display_name }"
+    FeedbackEmail: "${ smtp.from }"
+    ReplyToAddress: "${ smtp.from }"
+    FeedbackOrganization: ""
+    EnableSMTPAuth: true
+    SMTPUsername: "${ smtp.user }"
+    SMTPPassword: "${ smtp.password }"
+    SMTPServer: "email-smtp.eu-central-1.amazonaws.com"
+    SMTPPort: "${ smtp.port }"
+    SMTPServerTimeout: 10
+    ConnectionSecurity: ${ upper(smtp.connection_security) }
+    SendPushNotifications: true
+    PushNotificationContents: "generic"
+    SkipServerCertificateVerification: false
+    PushNotificationServer: "https://hpns-de.mattermost.com/"

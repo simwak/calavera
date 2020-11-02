@@ -1,0 +1,73 @@
+persistence:
+  enabled: ${ persistence }
+  size: ${ persistence_size }
+
+database:
+  builtIn:
+    postgresql:
+      enabled: true
+      
+gitea:
+  extraInitContainers: |
+    - name: wait-for-keycloak
+      image: byrnedo/alpine-curl
+      args:
+      env:
+        - name: SCRIPT
+          value: &script |-
+            until $(curl --output /dev/null --silent --head --insecure --fail https://${ domains.auth }/auth/); do
+              printf '.'
+              sleep 5
+            done
+      command: ["/bin/sh",'-c', *script]
+  admin:
+    username: ${ admin.user }
+    password: ${ admin.password }
+    email: ${ admin.email }
+  oauth:
+    enabled: true
+    name: ${ oauth_name }
+    id: ${ oauth.id }
+    secret: ${ oauth.secret }
+    url: ${ oauth_url }
+  ldap:
+    enabled: true
+    name: ${ ldap_name }
+    securityProtocol:  ${ ldap.security_protocol }
+    host: ${ ldap.host }
+    port: "${ ldap.port }"
+    userSearchBase: ${ ldap.users_dn }
+    userFilter: "${ ldap.user_filter }"
+    adminFilter: "(objectClass=giteaAdmin)"
+    emailAttribute: ${ ldap.email_attribute }
+    bindDn: ${ ldap.bind_dn }
+    bindPassword: ${ ldap.bind_credential }
+    usernameAttribute: ${ ldap.username_attribute }
+  config:
+    service:
+      SHOW_REGISTRATION_BUTTON: "false"
+      DISABLE_REGISTRATION: "true"
+      ALLOW_ONLY_EXTERNAL_REGISTRATION: "true"
+      REQUIRE_SIGNIN_VIEW: "true"
+    log:
+      ROOT_PATH: /var/gitea/
+    server:
+      domain: ${ domains.gitea }
+      PROTOCOL: http
+      ROOT_URL: https://${ domains.gitea }
+      SSH_DOMAIN: ${ domains.gitea }
+      DISABLE_SSH: "true"
+  customCA:
+    enabled: ${ enable_custom_ca }
+    %{ if enable_custom_ca }
+    ca: |+2
+      ${ indent(6, custom_ca) }
+    %{ endif }
+    
+postgresql:
+  persistence:
+    enabled: ${ persistence }
+    size: ${ persistence_size_postgresql }
+  postgresqlUsername: ${ postgresql.username }
+  postgresqlPassword: ${ postgresql.password }
+  postgresqlDatabase: ${ postgresql.database }

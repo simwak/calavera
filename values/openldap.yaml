@@ -1,0 +1,15 @@
+persistence:
+  enabled: ${ persistence }
+  accessMode: ReadWriteOnce
+  size: ${ persistence_size }
+
+adminPassword: ${ admin_password }
+configPassword: ${ config_password }
+
+env:
+  LDAP_ORGANISATION: ${ organisation }
+  LDAP_DOMAIN: ${ domain }
+  LDAP_BACKEND: hdb
+  LDAP_TLS: "true"
+  LDAP_TLS_ENFORCE: "false"
+  LDAP_REMOVE_CONFIG_AFTER_SETUP: "true"

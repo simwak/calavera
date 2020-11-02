@@ -1,0 +1,49 @@
+image:
+  repository: openproject/community
+  pullPolicy: IfNotPresent
+
+persistence:
+  enabled: ${ persistence }
+  size:  ${ persistence_size }
+
+postgresql:
+  persistence:
+    enabled: ${ persistence }
+    size: ${ persistence_postgresql_size }
+  postgresqlUsername: ${ postgresql.username }
+  postgresqlPassword: ${ postgresql.password }
+  postgresqlDatabase: ${ postgresql.database }
+
+configuration:
+  enabled: true
+  settings:
+    host_name: ${ domains.openproject }
+    protocol: https
+    self_registration: 0
+    lost_password: 0
+    smtp_openssl_verify_mode: none
+    smtp_enable_starttls_auto:  ${ smtp.starttls ? 1 : 0 }
+    smtp_ssl: ${ smtp.ssl ? 1 : 0 }
+    smtp_address: ${ smtp.host }
+    smtp_port: ${ smtp.port }
+    smtp_domain: ${ smtp.host }
+    smtp_authentication:  ${ smtp.encryption }
+    smtp_user_name: ${ smtp.user }
+    smtp_password: ${ smtp.password }
+  auth_sources:
+    example_ldap:
+      type: LdapAuthSource
+      name: OpenLDAP
+      host: ${ ldap.host }
+      port: ${ ldap.port } 
+      account: ${ ldap.bind_dn }
+      account_password: ${ ldap.bind_credential }
+      base_dn: ${ ldap.users_dn }
+      attr_login: ${ ldap.email_attribute }
+      attr_firstname: ${ ldap.firstname_attribute }
+      attr_lastname: ${ ldap.lastname_attribute }
+      attr_mail: ${ ldap.email_attribute }
+      onthefly_register: true
+      attr_admin: openprojectAdmin
+      tls_mode: ${ ldap.tls_mode }
+      filter_string: 
