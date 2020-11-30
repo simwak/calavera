@@ -10,7 +10,7 @@ calavera.simwak.dev               A     your-node-address
 ```
 
 Tested on Ubuntu (ubuntu-focal-20.04-amd64-server-20201026) with t3.xlarge and 200 GB disk space.  
-You need a lot of disk space for all components, otherwise they get evicated and the deployment fails.
+You need a lot of disk space for all components, otherwise they get evicted and the deployment fails.
 
 ``` bash
 export USER=$(whoami)
