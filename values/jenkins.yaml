@@ -60,7 +60,9 @@ master:
 
   additionalPlugins:
     - "ldap:1.26"
+%{ if length(additional_plugins) < 0 }
     ${ additional_plugins }
+%{ endif }
 
   JCasC:
     enabled: true
