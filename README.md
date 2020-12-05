@@ -3,6 +3,8 @@
 # Calavera: A fully featured web-based development environment
 Calavera is a fully featured web-based development environment deployed on **Kubernetes** with serveral available services! It has everything a team needs to develop applications. From a project management tool like **OpenProject** to the web-hosted editor **Visual Studio Code** is everything needed included. Even deploying applications in the Kubernetes Cluster is possible with a user namespace which is available without further configuration or authorization in the editor to access.
 
+Inspired and named after Charles Betz project "[Calavera](https://github.com/dm-academy/Calavera/wiki/Calavera-Home)".
+
 **Included services:**
 - OpenLDAP
 - Keycloak
